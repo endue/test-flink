@@ -24,6 +24,7 @@ public class WordCountJava {
 
         // 通过source算子,得到一个dataSoruce
         DataStreamSource<String> source = env.readTextFile("src/main/resources/word.txt");
+//        env.setParallelism(2);// 指定默认并行度为2个线程
 
         // 对数据流进行转换
         SingleOutputStreamOperator<Tuple2<String, Integer>> streamOperator = source.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
