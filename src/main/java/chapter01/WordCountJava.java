@@ -1,0 +1,49 @@
+package chapter01;
+
+import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.util.Collector;
+
+import java.util.Collection;
+
+/**
+ * @author meng.li1
+ * @Date 2022/9/5 13:25
+ * @Description ：在window启动9999端口,不断发送数据,然后不断统计数据流中的单次数量
+ */
+public class WordCountJava {
+
+    public static void main(String[] args) throws Exception {
+        // 创建编程入口
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        // 通过source算子,得到一个dataSoruce
+        DataStreamSource<String> source = env.readTextFile("src/main/resources/word.txt");
+
+        // 对数据流进行转换
+        SingleOutputStreamOperator<Tuple2<String, Integer>> streamOperator = source.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
+            @Override
+            public void flatMap(String s, Collector<Tuple2<String, Integer>> collector) throws Exception {
+                String[] split = s.split(",");
+                for (String word : split) {
+                    collector.collect(Tuple2.of(word, 1));
+                }
+            }
+        });
+
+        KeyedStream<Tuple2<String, Integer>, String> keyedStream = streamOperator.keyBy((KeySelector<Tuple2<String, Integer>, String>) tuple -> tuple.f0);
+
+        SingleOutputStreamOperator<Tuple2<String, Integer>> outputStreamOperator = keyedStream.sum(1);
+
+        outputStreamOperator.print();
+
+        // 触发执行
+        env.execute();
+
+    }
+}
