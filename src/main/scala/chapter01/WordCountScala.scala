@@ -1,5 +1,6 @@
 package chapter01
 
+import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, createTypeInformation}
 
@@ -12,24 +13,37 @@ object WordCountScala {
 
   def main(args: Array[String]): Unit = {
     val conf = new Configuration()
-    conf.setInteger("rest.port", 9991)
-
-    // 显示声明本地运行环境并且带webui
+    conf.setInteger("rest.port", 8881)
 
     val env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf)
+    env.socketTextStream("127.0.0.1", 9999)
+      .flatMap(s => s.split(","))
+      .map((_, 1))
+      .keyBy(_._1)
+      .sum(1)
+      .print()
 
-//    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
-    val source = env.readTextFile("src/main/resources/word.txt")
-
-    val streamOperator = source.flatMap(s => s.split(",")).map(w => (w, 1))
-
-    val keyedStream = streamOperator.keyBy(_._1)
-
-    val outputStreamOperator = keyedStream.sum(1)
-
-    outputStreamOperator.print()
-
-    env.execute()
+    env.execute("WordCountScala")
   }
+
+//  val conf = new Configuration()
+//  conf.setInteger("rest.port", 9991)
+//
+//  // 显示声明本地运行环境并且带webui
+//
+//  val env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf)
+//
+//  //    val env = StreamExecutionEnvironment.getExecutionEnvironment
+//
+//  val source = env.readTextFile("src/main/resources/word.txt")
+//
+//  val streamOperator = source.flatMap(s => s.split(",")).map(w => (w, 1))
+//
+//  val keyedStream = streamOperator.keyBy(_._1)
+//
+//  val outputStreamOperator = keyedStream.sum(1)
+//
+//  outputStreamOperator.print()
+//
+//  env.execute()
 }
