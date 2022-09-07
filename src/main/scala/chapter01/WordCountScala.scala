@@ -1,5 +1,6 @@
 package chapter01
 
+import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, createTypeInformation}
 
 /**
@@ -10,7 +11,14 @@ import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, createT
 object WordCountScala {
 
   def main(args: Array[String]): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
+    val conf = new Configuration()
+    conf.setInteger("rest.port", 9991)
+
+    // 显示声明本地运行环境并且带webui
+
+    val env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf)
+
+//    val env = StreamExecutionEnvironment.getExecutionEnvironment
 
     val source = env.readTextFile("src/main/resources/word.txt")
 
