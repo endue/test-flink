@@ -1,1 +1,1 @@
-a,1,b,b,w,a,g,r,s,c,w,d,d,i,o,p,j
+a,b,b,w,a,b,c,e,d
