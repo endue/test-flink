@@ -1,4 +1,4 @@
-package chapter02;
+package chapter04;
 
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.connector.file.sink.FileSink;

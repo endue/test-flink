@@ -1,4 +1,4 @@
-package chapter02;
+package chapter04;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlXADataSource;
 import org.apache.flink.connector.jdbc.*;

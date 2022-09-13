@@ -2,9 +2,6 @@ package chapter02;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * @author meng.li1
  * @Date 2022/9/7 13:18

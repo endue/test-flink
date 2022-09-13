@@ -1,4 +1,4 @@
-package chapter02
+package chapter04
 
 import org.apache.flink.streaming.api.functions.source.SourceFunction
 
