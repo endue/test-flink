@@ -16,7 +16,7 @@ import java.util.Arrays;
  * @Date 2022/9/10 13:18
  * @Description ：
  */
-public class StreamFileSinkTest {
+public class StreamFileSinkJava {
     public static void main(String[] args) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.getCheckpointConfig().setCheckpointStorage("d:/flink/");

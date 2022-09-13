@@ -1,6 +1,5 @@
 package chapter02;
 
-import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -11,7 +10,7 @@ import java.util.Arrays;
  * @Date 2022/9/10 10:01
  * @Description ：
  */
-public class SinkJava {
+public class TextSinkJava {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
