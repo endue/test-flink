@@ -15,7 +15,7 @@ import org.apache.flink.util.OutputTag;
  * @Date: 2022/9/13 22:55
  * @Version: 1.0
  */
-public class _01_SideOutputJava {
+public class _01_ProcessJava {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
