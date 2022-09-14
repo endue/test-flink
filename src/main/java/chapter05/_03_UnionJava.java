@@ -9,7 +9,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  * @Date 2022/9/14 13:08
  * @Description ：union合并流操作，参与union的流数据类型要一致
  */
-public class _02_UnionJava {
+public class _03_UnionJava {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
