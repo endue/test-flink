@@ -4,13 +4,15 @@ import chapter05.domain.EventCount;
 import chapter05.domain.EventUserInfo;
 import chapter05.domain.UserInfo;
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.flink.api.common.state.BroadcastState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
+import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
+import org.apache.flink.connector.jdbc.JdbcSink;
+import org.apache.flink.connector.jdbc.JdbcStatementBuilder;
 import org.apache.flink.streaming.api.datastream.BroadcastConnectedStream;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -18,8 +20,12 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 /**
  * @Author:
@@ -31,6 +37,7 @@ public class _08_PracticeJava {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
 
         DataStreamSource<String> s1 = env.fromElements("1,event01,3", "1,event02,2", "2,event03,4");
 
@@ -115,8 +122,18 @@ public class _08_PracticeJava {
 
         mainResult.print("mainResult");
 
-        // 写入数据库
+        joinedStream.getSideOutput(coutputTag).print("side");
 
+        // 写入数据库
+        SinkFunction<EventUserInfo> sink = JdbcSink.sink("", new JdbcStatementBuilder<EventUserInfo>() {
+                    @Override
+                    public void accept(PreparedStatement preparedStatement, EventUserInfo eventUserInfo) throws SQLException {
+
+                    }
+                }, JdbcExecutionOptions.builder().build(),
+                new JdbcConnectionOptions.JdbcConnectionOptionsBuilder().build());
+
+        mainResult.addSink(sink);
 
         env.execute();
     }
