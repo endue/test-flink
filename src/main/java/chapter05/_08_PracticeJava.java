@@ -90,6 +90,8 @@ public class _08_PracticeJava {
             }
         });
 
+        joinedStream.print("joinedStream");
+
         // 关联后的数据做测流输出，随机数能被7整除的放入测流，否则放入主流
 //        joinedStream.process(new ProcessFunction<EventUserInfo, EventUserInfo>() {
 ////            @Override
@@ -103,9 +105,15 @@ public class _08_PracticeJava {
 ////        })
 
         // 对主流数据按性别分组，取最大随机数所在的第一条数据作为结果输出
-        SingleOutputStreamOperator<EventUserInfo> mainResult = joinedStream.keyBy(EventUserInfo::getGender)
+        SingleOutputStreamOperator<EventUserInfo> mainResult = joinedStream.keyBy(new KeySelector<EventUserInfo, String>() {
+            @Override
+            public String getKey(EventUserInfo eventUserInfo) throws Exception {
+                return eventUserInfo.getGender();
+            }
+        }, TypeInformation.of(String.class))
                 .maxBy("cnt");
 
+        mainResult.print("mainResult");
 
         // 写入数据库
 

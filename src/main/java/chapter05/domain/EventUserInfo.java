@@ -1,18 +1,23 @@
 package chapter05.domain;
 
+import java.io.Serializable;
+
 /**
  * @Author:
  * @Description:
  * @Date: 2022/9/15 22:36
  * @Version: 1.0
  */
-public class EventUserInfo {
+public class EventUserInfo implements Serializable {
 
     private int id;
     private String eventId;
     private int cnt;
     private String gender;
     private String city;
+
+    public EventUserInfo() {
+    }
 
     public EventUserInfo(int id, String eventId, int cnt, String gender, String city) {
         this.id = id;
@@ -60,5 +65,16 @@ public class EventUserInfo {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    @Override
+    public String toString() {
+        return "EventUserInfo{" +
+                "id=" + id +
+                ", eventId='" + eventId + '\'' +
+                ", cnt=" + cnt +
+                ", gender='" + gender + '\'' +
+                ", city='" + city + '\'' +
+                '}';
     }
 }
