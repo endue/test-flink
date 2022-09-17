@@ -33,7 +33,7 @@ import java.sql.SQLException;
  * @Date: 2022/9/15 22:19
  * @Version: 1.0
  */
-public class _08_PracticeJava {
+public class _08_UnitTestJava {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
