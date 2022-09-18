@@ -3,6 +3,7 @@ package chapter06;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -29,10 +30,12 @@ public class _01_WatermarkGenerationStrategy {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        // id,事件,时间戳,页面标识
+        // 指定时间语意(已过期), 1.12版开始默认为event time，如需调整在widow()后指定即可
+        // env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+
         DataStreamSource<String> dataStreamSource = env.socketTextStream("localhost", 9999);
 
-
+//        在datasource上设置watermark
 //        WatermarkStrategy<String> watermarkStrategy = WatermarkStrategy
 //                .<String>forBoundedOutOfOrderness(Duration.ofSeconds(5))                // 设置Watermark生成策略
 //                .withTimestampAssigner(new SerializableTimestampAssigner<String>() {    // 设置 Watermark生成时机
@@ -41,41 +44,19 @@ public class _01_WatermarkGenerationStrategy {
 //                        return Long.valueOf(s.split(",")[2]);
 //                    }
 //                });
-//
-//        // 在datasource就设置watermark
 //        dataStreamSource.assignTimestampsAndWatermarks(watermarkStrategy);
 
 
+        // 在map后设置watermark, 将并行度由1改为2(并行度下watermark推荐测试用)
         WatermarkStrategy<EventBean> watermarkStrategy = WatermarkStrategy
-                .<EventBean>forBoundedOutOfOrderness(Duration.ofSeconds(5))
-                .withTimestampAssigner(new SerializableTimestampAssigner<EventBean>() {
+                .<EventBean>forBoundedOutOfOrderness(Duration.ofSeconds(5))                 // 设置Watermark生成策略
+                .withTimestampAssigner(new SerializableTimestampAssigner<EventBean>() {     // 设置 Watermark生成时机
                     @Override
                     public long extractTimestamp(EventBean s, long l) {
                         return s.getTimestamp();
                     }
                 });
 
-        // 在map后设置watermark
-//        SingleOutputStreamOperator<EventBean> s2 = dataStreamSource
-//                .map(s -> {
-//                    String[] split = s.split(",");
-//                    return new EventBean(Long.parseLong(split[0]), split[1], Long.parseLong(split[2]), split[3]);
-//                })
-//                .returns(TypeInformation.of(EventBean.class))
-//                .assignTimestampsAndWatermarks(watermarkStrategy);
-
-//        s2.process(new ProcessFunction<EventBean, EventBean>() {
-//            @Override
-//            public void processElement(EventBean value, Context ctx, Collector<EventBean> out) throws Exception {
-//                System.out.println("当前Watermark:" + ctx.timerService().currentWatermark());
-//                System.out.println("当前ProcessingTime:" + ctx.timerService().currentProcessingTime());
-//
-//                out.collect(value);
-//            }
-//        }).print("process:");
-
-
-        // 在map后设置watermark并且将并行度由1改为2
         SingleOutputStreamOperator<EventBean> s2 = dataStreamSource
                 .map(s -> {
                     String[] split = s.split(",");
