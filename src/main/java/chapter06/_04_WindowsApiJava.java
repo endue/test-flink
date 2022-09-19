@@ -43,8 +43,8 @@ public class _04_WindowsApiJava {
 
         SingleOutputStreamOperator<EventBean> mainStream = watermarksource.keyBy(EventBean::getEventId)
                 .window(TumblingProcessingTimeWindows.of(Time.seconds(10)))
-                .allowedLateness(Time.seconds(2)) // 允许窗口触发后，再次迟到的数据最多2s
-                .sideOutputLateData(outputTag) // 迟到超过2s后的数据，输入到测流,比如窗口时间 00:00-00:10,那么再00:12之后到达的属于该窗口的数据将被输入测流
+                .allowedLateness(Time.seconds(2)) // 允许窗口触发后，再次迟到的数据最多2s,比如窗口时间 00:00-00:10,那么在00:10 - 00:12之间到达的属于该窗口的数据将被再次调用主流
+                .sideOutputLateData(outputTag) // 迟到超过2s后的数据，输入到测流,比如窗口时间 00:00-00:10,那么在00:12之后到达的属于该窗口的数据将被输入测流,主流不触发
                 .apply(new WindowFunction<EventBean, EventBean, String, TimeWindow>() {
                     @Override
                     public void apply(String s, TimeWindow window, Iterable<EventBean> input, Collector<EventBean> out) throws Exception {
