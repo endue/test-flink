@@ -5,11 +5,9 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
-import org.apache.flink.streaming.api.datastream.WindowedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
@@ -19,7 +17,7 @@ import java.time.Duration;
 
 /**
  * @Author:
- * @Description:
+ * @Description: 窗口计算中的允许迟到和迟到数据测流
  * @Date: 2022/9/19 22:09
  * @Version: 1.0
  */
@@ -42,7 +40,7 @@ public class _04_WindowsApiJava {
         OutputTag<EventBean> outputTag = new OutputTag<EventBean>("allowedLateness");
 
         SingleOutputStreamOperator<EventBean> mainStream = watermarksource.keyBy(EventBean::getEventId)
-                .window(TumblingProcessingTimeWindows.of(Time.seconds(10)))
+                .window(TumblingEventTimeWindows.of(Time.seconds(10)))
                 .allowedLateness(Time.seconds(2)) // 允许窗口触发后，再次迟到的数据最多2s,比如窗口时间 00:00-00:10,那么在00:10 - 00:12之间到达的属于该窗口的数据将被再次调用主流
                 .sideOutputLateData(outputTag) // 迟到超过2s后的数据，输入到测流,比如窗口时间 00:00-00:10,那么在00:12之后到达的属于该窗口的数据将被输入测流,主流不触发
                 .apply(new WindowFunction<EventBean, EventBean, String, TimeWindow>() {
