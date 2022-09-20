@@ -1,9 +1,11 @@
 package chapter07;
 
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.state.OperatorStateStore;
+import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
@@ -13,7 +15,10 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 /**
  * @author meng.li1
  * @Date 2022/9/20 13:35
- * @Description ：算子状态
+ * @Description ：通过socket端口将每次输入的数据和上次输出的数据拼接在一起保存并返回输给下一个算子,开启状态保存以及task故障自动恢复
+ * a
+ * ab
+ * abc
  */
 public class _01_OperatorStateJava {
 
@@ -21,10 +26,12 @@ public class _01_OperatorStateJava {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        // todo 需要开启checkpoint（快照周期）
+        // todo 开启状态数据的checkpoint（快照周期）
         env.enableCheckpointing(1000);
         // todo 指定快照数据的持久化存储位置
         env.getCheckpointConfig().setCheckpointStorage("");
+        // todo 开启task级别的故障自动failover(最多重启恢复5次[假设job运行过程中总共遇到5次错误也退出],每5s重试一次)
+        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(5, Time.seconds(5)));
 
         // 读取数据
         DataStreamSource<String> source = env.socketTextStream("localhost", 9999);
@@ -38,6 +45,7 @@ public class _01_OperatorStateJava {
 }
 
 class MystateFunction implements MapFunction<String, String>, CheckpointedFunction{
+    // 记录每次拼接的结果
     ListState<String> listState;
 
     /**
@@ -49,7 +57,14 @@ class MystateFunction implements MapFunction<String, String>, CheckpointedFuncti
     @Override
     public String map(String value) throws Exception {
         listState.add(value);
+
+        // 模拟task异常
+        if(value.equalsIgnoreCase("x")){
+            throw new Exception("");
+        }
+
         // todo 拼接
+
         return value;
     }
 
@@ -66,7 +81,7 @@ class MystateFunction implements MapFunction<String, String>, CheckpointedFuncti
 
     /**
      * 来自CheckpointedFunction
-     * 算子任务在启动时调用该方法，初始化状态
+     * 在task实例任务失败后，自动重启时，加载最近一次快照的数据
      * @param context
      * @throws Exception
      */
