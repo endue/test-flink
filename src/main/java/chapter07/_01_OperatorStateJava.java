@@ -15,7 +15,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 /**
  * @author meng.li1
  * @Date 2022/9/20 13:35
- * @Description ：通过socket端口将每次输入的数据和上次输出的数据拼接在一起保存并返回输给下一个算子,开启状态保存以及task故障自动恢复
+ * @Description ：算子状态示例，
+ * 通过socket端口将每次输入的数据和上次输出的数据拼接在一起保存并返回输给下一个算子,开启状态保存以及task故障自动恢复
  * a
  * ab
  * abc
