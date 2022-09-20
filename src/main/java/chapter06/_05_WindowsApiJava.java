@@ -24,7 +24,7 @@ import java.util.Iterator;
 
 /**
  * @Author:
- * @Description: 窗口中的trigger和evictor
+ * @Description: 窗口中的trigger和evictor。窗口触发时，先去调用evictor的evictBefore方法，然后计算，计算完成后在调用evictor的evictorAfter方法
  * @Date: 2022/9/20 7:05
  * @Version: 1.0
  */
