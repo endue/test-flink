@@ -2,15 +2,19 @@ package chapter07;
 
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
-import org.apache.flink.api.common.state.*;
+import org.apache.flink.api.common.state.ListState;
+import org.apache.flink.api.common.state.ListStateDescriptor;
+import org.apache.flink.api.common.state.StateTtlConfig;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * @Author:
  * @Description: 状态的TTL
+ * https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/dev/datastream/fault-tolerance/state/
  * @Date: 2022/9/24 9:21
  * @Version: 1.0
  */
@@ -26,6 +30,9 @@ public class _03_StateTTLJava {
         env.getCheckpointConfig().setCheckpointStorage("");
         // todo 开启task级别的故障自动failover(最多重启恢复5次[假设job运行过程中总共遇到5次错误也退出],每5s重试一次)
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(5, Time.seconds(5)));
+        // todo 设置statebackend
+//        env.setStateBackend(new HashMapStateBackend());
+        env.setStateBackend(new EmbeddedRocksDBStateBackend(true));
 
         // 读取数据
         DataStreamSource<String> source = env.socketTextStream("localhost", 9999);
@@ -46,11 +53,12 @@ public class _03_StateTTLJava {
                         .setStateVisibility(StateTtlConfig.StateVisibility.ReturnExpiredIfNotCleanedUp) // 如果过期的数据没被清理则返回
                         .setTtlTimeCharacteristic(StateTtlConfig.TtlTimeCharacteristic.ProcessingTime) // ttl的时间语义
 //                        .useProcessingTime()
+                        .cleanupIncrementally(1000, false) // 增量清理(每访问一条数据,就会检查这数据是否过期,每次检查cleanupSize指定的key数量)
+                        .cleanupFullSnapshot() // 全量快照清理策略(当checkpoint时做快照,只存储未过期数据)
+                        .cleanupInRocksdbCompactFilter(1000) // 增量清理(只对RockdbStateBackend有效)
                         .build()
                 );
-
                 state = getRuntimeContext().getListState(stateDescriptor);
-
             }
 
             @Override
