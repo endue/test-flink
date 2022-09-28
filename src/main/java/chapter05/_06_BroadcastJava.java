@@ -24,27 +24,28 @@ public class _06_BroadcastJava {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
 
         /**
          * 用户行为流(源源不断)
          * id, 行为
          */
-        DataStreamSource<String> s1 = env.fromElements("1,学习", "2,跑步", "2,旅游", "3,开车", "2,跑步", "4,睡觉");
+        DataStreamSource<String> s1 = env.socketTextStream("127.0.0.1", 8888); // env.fromElements("1,学习", "2,跑步", "2,旅游", "3,开车", "2,跑步", "4,睡觉");
         /**
          * 用户信息流(数据比较少)
          * id, age, address
          */
-        DataStreamSource<String> s2 = env.fromElements("1,10,bj", "2,30,xian", "4,60,guangzhou");
+        DataStreamSource<String> s2 = env.socketTextStream("127.0.0.1", 9999);//env.fromElements("1,10,bj", "2,30,xian", "4,60,guangzhou");
 
         SingleOutputStreamOperator<Tuple2<String, String>> single1 = s1.map(s -> {
             String[] split = s.split(",");
             return Tuple2.of(split[0], split[1]);
-        });
+        }).returns(TypeInformation.of(new TypeHint<Tuple2<String, String>>() {}));
 
         SingleOutputStreamOperator<Tuple3<String, String, String>> single2 = s2.map(s -> {
             String[] split = s.split(",");
             return Tuple3.of(split[0], split[1], split[2]);
-        });
+        }).returns(TypeInformation.of(new TypeHint<Tuple3<String, String, String>>() {}));
 
 
         MapStateDescriptor<String, Tuple3<String, String, String>> userInfoStateDescriptor = new MapStateDescriptor<>("userInfoState",
@@ -86,6 +87,7 @@ public class _06_BroadcastJava {
              */
             @Override
             public void processBroadcastElement(Tuple3<String, String, String> value, BroadcastProcessFunction<Tuple2<String, String>, Tuple3<String, String, String>, String>.Context ctx, Collector<String> out) throws Exception {
+                System.out.println("收到广播流 " + value.toString());
                 // 拿到广播状态
                 BroadcastState<String, Tuple3<String, String, String>> broadcastState = ctx.getBroadcastState(userInfoStateDescriptor);
 

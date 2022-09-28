@@ -9,7 +9,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  */
 public class DataSourceJava {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // 基于集合的数据源
@@ -19,6 +19,9 @@ public class DataSourceJava {
 //        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
 //        env.fromCollection(list);
 
-        env.addSource(new CustomDataSourceJava());
+        env.addSource(new CustomDataSourceJava())
+                        .print("customerSource:");
+
+        env.execute();
     }
 }
